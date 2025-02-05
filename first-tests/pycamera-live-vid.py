@@ -1,40 +1,41 @@
 import time
-import pygame
 import numpy as np
+import tkinter as tk
 from picamera2 import Picamera2
+from PIL import Image, ImageTk
 
 # Initialize Picamera2
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration())
 picam2.start()
 
-# Initialize Pygame
-pygame.init()
+# Create Tkinter Window
+root = tk.Tk()
+root.title("Live Camera Stream")
 
-# Set the display resolution (match camera resolution)
-WIDTH, HEIGHT = 640, 480  # Adjust based on your camera's resolution
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Live Stream")
+# Set camera resolution (Adjust if needed)
+WIDTH, HEIGHT = 640, 480
+canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
+canvas.pack()
 
-running = True
-try:
-    while running:
-        frame = picam2.capture_array()  # Capture a frame as an array
-        
-        # Convert the frame to a format Pygame understands
-        frame = np.rot90(frame)  # Rotate if needed
-        frame = np.flipud(frame)  # Flip the image if necessary
-        frame_surface = pygame.surfarray.make_surface(frame)
+def update_frame():
+    """Captures an image from the camera and updates the Tkinter window."""
+    frame = picam2.capture_array()
+    frame = np.flipud(frame)  # Flip the image if necessary
+    img = Image.fromarray(frame)  # Convert NumPy array to PIL Image
+    img = img.resize((WIDTH, HEIGHT))  # Resize to fit canvas
+    img_tk = ImageTk.PhotoImage(image=img)
 
-        # Display the frame
-        screen.blit(frame_surface, (0, 0))
-        pygame.display.update()
+    canvas.create_image(0, 0, anchor=tk.NW, image=img_tk)
+    canvas.image = img_tk  # Keep reference to avoid garbage collection
 
-        # Check for quit event
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    root.after(10, update_frame)  # Refresh every 10ms
 
-finally:
-    picam2.close()
-    pygame.quit()
+# Start updating the frame
+update_frame()
+
+# Run the Tkinter loop
+root.mainloop()
+
+# Cleanup
+picam2.close()
