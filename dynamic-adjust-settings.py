@@ -10,6 +10,9 @@ config = picam2.create_preview_configuration()
 picam2.configure(config)
 picam2.start()
 
+# Flip the camera if needed
+picam2.set_controls({"FlipV": True, "FlipH": True})  # Flips the camera if it's upside down
+
 # Create Tkinter Window
 root = tk.Tk()
 root.title("Live Camera with Adjustable Parameters")
@@ -22,7 +25,10 @@ canvas.pack()
 def update_frame():
     """Captures an image from the camera and updates the Tkinter window."""
     frame = picam2.capture_array()
-    frame = np.flipud(frame)  # Flip the image if necessary
+    
+    # Flip if needed
+    frame = np.rot90(frame, 2)  # Rotate 180 degrees if camera is upside down
+
     img = Image.fromarray(frame)  # Convert NumPy array to PIL Image
     img = img.resize((WIDTH, HEIGHT))  # Resize to fit canvas
     img_tk = ImageTk.PhotoImage(image=img)
@@ -34,11 +40,12 @@ def update_frame():
 
 # Function to update camera settings
 def update_settings(value=None):
-    picam2.set_controls({
-        "AnalogueGain": gain_var.get(),         # Gain
-        "ExposureTime": exposure_var.get(),     # Exposure
-        "AwbGain": (wb_r_var.get(), wb_b_var.get()),  # White Balance (R, B)
-    })
+    controls = {
+        "AnalogueGain": gain_var.get(),          # Adjust Gain (1.0 - 16.0)
+        "ExposureTime": exposure_var.get(),      # Exposure (100 - 100000)
+        "ColourGains": (wb_r_var.get(), wb_b_var.get())  # White Balance (R, B)
+    }
+    picam2.set_controls(controls)
 
 # Sliders for camera settings
 gain_var = tk.DoubleVar(value=1.0)
