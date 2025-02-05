@@ -42,4 +42,27 @@ def update_settings(value=None):
 
 # Sliders for camera settings
 gain_var = tk.DoubleVar(value=1.0)
-exposure_var = tk.IntVa
+exposure_var = tk.IntVar(value=1000)
+wb_r_var = tk.DoubleVar(value=1.5)
+wb_b_var = tk.DoubleVar(value=1.5)
+
+tk.Label(root, text="Gain").pack()
+tk.Scale(root, from_=1.0, to=16.0, resolution=0.1, orient="horizontal", variable=gain_var, command=update_settings).pack()
+
+tk.Label(root, text="Exposure").pack()
+tk.Scale(root, from_=100, to=100000, resolution=100, orient="horizontal", variable=exposure_var, command=update_settings).pack()
+
+tk.Label(root, text="White Balance (Red)").pack()
+tk.Scale(root, from_=0.5, to=8.0, resolution=0.1, orient="horizontal", variable=wb_r_var, command=update_settings).pack()
+
+tk.Label(root, text="White Balance (Blue)").pack()
+tk.Scale(root, from_=0.5, to=8.0, resolution=0.1, orient="horizontal", variable=wb_b_var, command=update_settings).pack()
+
+# Start updating the frame
+update_frame()
+
+# Run the Tkinter loop
+root.mainloop()
+
+# Cleanup
+picam2.close()
